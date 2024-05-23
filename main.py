@@ -58,6 +58,9 @@ def validate_opset(model, device, filepath):
 
     with open(filepath, 'w') as fp:
         json.dump({
+            'producer_name': model.producer_name,
+            'producer_version': model.producer_version,
+            'opset_version': ver,
             'not_supported': not_supported,
             'supported': supported,
             'unknown': unknown,
@@ -66,16 +69,16 @@ def validate_opset(model, device, filepath):
 
 def main(args):
     model = onnx.load(args.model)
-    if args.subcmd == 'list':
-        raise NotImplementedError
+    if args.subcmd == 'validate':
+        if args.out is None:
+            args.out = os.path.splitext(os.path.basename(args.model))[0] + '.json'
+        validate_opset(model, args.device, args.out)
+        print(f'The result is in {args.out}.')
     elif args.subcmd == 'textproto':
         if args.out is None:
             args.out = os.path.splitext(os.path.basename(args.model))[0] + '.textproto'
         to_textproto(model, args.out)
-    elif args.subcmd == 'validate':
-        if args.out is None:
-            args.out = os.path.splitext(os.path.basename(args.model))[0] + '.json'
-        validate_opset(model, args.device, args.out)
+        print(f'Save textproto to {args.out}.')
 
 
 if __name__ == '__main__':
@@ -90,8 +93,6 @@ if __name__ == '__main__':
 
     subcmd = parser.add_subparsers(dest='subcmd', help='subcommands', metavar='SUBCOMMAND')
     subcmd.required = True
-
-    list_parser = subcmd.add_parser('list', help='List all used ops')
 
     txtproto_parser = subcmd.add_parser('textproto', help='Convert to textproto')
     txtproto_parser.add_argument('--out', '-o', type=str, help='Path to the output file')
