@@ -3,11 +3,11 @@
 1.  Clone the source code.
     ```bash
     cd ~
-    git clone
+    git clone https://github.com/nexgus/opset.git
     ```
 1.  Create the virtual environment and activate it.
     ```bash
-    cd ~/opset
+    cd opset
     python3.10 -m venv .
     source bin/activate
     ```
