@@ -30,13 +30,16 @@ def validate_opset(model, device, filepath):
 
     ver = opset_version(model)
     print(f'opset version: {ver}')
-    if ver > 12:
-        raise ValueError(f'Unsupported ONNX opset version: {ver}')
 
     if device == 'kl720':
+        if ver > 12:
+            raise ValueError(f'Unsupported ONNX opset version: {ver}')
         from kl720 import opset
+    elif device == 'openvino-cpu' or device == 'openvino-gpu':
+        from openvino import get_opset
+        opset = get_opset(device.split('-')[1])
     else:
-        raise ValueError(f'Unsupported NPU device: {device}')
+        raise ValueError(f'Unsupported device: {device}')
 
     supported = dict()
     not_supported = dict()
@@ -84,6 +87,11 @@ def main(args):
 if __name__ == '__main__':
     import argparse
 
+    DEVICES = [
+        'kl720',
+        'openvino-cpu', 'openvino-gpu',
+    ]
+
     parser = argparse.ArgumentParser(
         description='Scan ONNX opset',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -98,7 +106,7 @@ if __name__ == '__main__':
     txtproto_parser.add_argument('--out', '-o', type=str, help='Path to the output file')
 
     validate_parser = subcmd.add_parser('validate', help='Validate opset')
-    validate_parser.add_argument('--device', '-d', default='kl720', choices=['kl720'], help='The NPU device')
+    validate_parser.add_argument('--device', '-d', default='kl720', choices=DEVICES, help='The device')
     validate_parser.add_argument('--out', '-o', type=str, help='Path to the output file')
 
     args = parser.parse_args()
